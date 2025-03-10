@@ -1,0 +1,118 @@
+@startuml
+class Cliente {
+    - String nombre
+    - String apellidos
+    - String NIF
+    - String direccion
+    + List<LineaTelefonica> lineas
+    + HistorialLlamadas historialLlamadas
+    + Facturacion facturacion
+    + ProgramaFidelizacion programaFidelizacion
+}
+
+class LineaTelefonica {
+    - String numeroTelefono
+    - TipoLinea tipo
+    - boolean cancelada
+    + Cliente cliente
+    + List<ServicioAdicional> servicios
+    + List<TarifaDescuento> tarifasAplicadas
+}
+
+enum TipoLinea {
+    BASICA
+    ADSL
+    RDSI
+}
+
+class ServicioAdicional {
+    - String codigo
+    - String nombre
+    - String descripcion
+    - double costo
+}
+
+class HistorialServicios {
+    - Date fechaCambio
+    - String descripcionCambio
+    + LineaTelefonica linea
+}
+
+class Llamada {
+    - String numeroDestino
+    - Date fecha
+    - Time horaInicio
+    - Time horaFin
+    - int duracion
+    - double costo
+    - AmbitoLlamada ambito
+    + TarifaDescuento tarifaAplicada
+}
+
+enum AmbitoLlamada {
+    PROVINCIAL
+    INTERPROVINCIAL
+    INTERNACIONAL
+}
+
+class TarifaDescuento {
+    - int id
+    - String codigo
+    - String nombre
+    - double cuotaAlta
+    - double cuotaEstablecimiento
+    - List<TarifaDescuento> incompatibilidades
+    + List<FranjaHoraria> franjas
+    + List<AmbitoLlamada> ambitos
+    + abstract double calcularDescuento(Llamada llamada)
+}
+
+class Bono <<TarifaDescuento>> {
+    - double cuotaMensual
+    + double calcularDescuento(Llamada llamada)
+}
+
+class PlanDescuento <<TarifaDescuento>> {
+    - double descuentoPorcentaje
+    + double calcularDescuento(Llamada llamada)
+}
+
+class FranjaHoraria {
+    - List<String> diasAplicacion
+    - Time rangoInicio
+    - Time rangoFin
+    - String descripcion
+}
+
+class ProgramaFidelizacion {
+    - int puntosAcumulados
+    - int puntosCanjeados
+    + int calcularPuntos(double gasto)
+    + void canjearPuntos(int puntos)
+}
+
+class HistorialLlamadas {
+    + List<Llamada> llamadas
+}
+
+class Facturacion {
+    + double calcularCostoTotal(Cliente cliente)
+}
+
+Cliente "1" -- "0..*" LineaTelefonica
+Cliente "1" -- "1" HistorialLlamadas
+Cliente "1" -- "1" Facturacion
+LineaTelefonica "1" -- "0..*" Llamada
+LineaTelefonica "0..*" -- "0..*" ServicioAdicional
+LineaTelefonica "1" -- "0..*" TarifaDescuento
+LineaTelefonica "1" -- "0..*" HistorialServicios
+Llamada "1" -- "1" AmbitoLlamada
+Llamada "1" -- "0..1" TarifaDescuento
+TarifaDescuento "0..*" -- "0..*" TarifaDescuento : incompatibilidad
+TarifaDescuento <|-- Bono
+TarifaDescuento <|-- PlanDescuento
+TarifaDescuento "1" -- "0..*" FranjaHoraria
+ProgramaFidelizacion "1" -- "1" Cliente
+HistorialLlamadas "1" -- "0..*" Llamada
+Facturacion "1" -- "1" Cliente
+@enduml
